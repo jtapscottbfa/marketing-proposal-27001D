@@ -34,6 +34,7 @@ P = "27001D"
 TITLE = "FY27 CIP MINCON: Substation Generators — NSF Dahlgren, VA"
 SOL = "N4008027R0004 (NAVFAC Project 1921806 / PID N40080-27-RFPREQ-SP DAHL ROICC-0004)"
 TODAY = date(2026, 11, 9)
+SCHED_ASOF = date(2026, 11, 24)  # schedule status date; bump when statuses change
 ENCON_SRC = "Encon ITB email, T. Colvin, 5 Nov 2026 (rfp_intake/original_rfp/*.msg)"
 HDR = (f"**Pursuit:** {P} · **Solicitation:** {SOL}  \n**Prime A/E (DOR):** Bowman, Foster & Associates, Inc. (BFA) · "
        f"**DB Offeror (GC):** Encon Corporation  \n**Prepared:** {TODAY:%d %b %Y} · **Status:** Working draft for internal review")
@@ -180,27 +181,17 @@ NOT_REQUIRED = [
 
 # ════════════════════════════════════════════════════════════════════
 # 3. SCHEDULE (key, start, minutes, title, owner, source, hard, done)
+#    Due dates only (user, 24 Nov 2026): no internal meetings or color-team reviews.
 # ════════════════════════════════════════════════════════════════════
 SCHEDULE = [
-    ("rfp", "2026-09-13", 0, "RFP SOW dated (NAVFAC Washington)", "NAVFAC", "SOW cover", False, True),
-    ("encon", "2026-11-05 11:28", 0, "Encon ITB to BFA (Tracy Colvin)", "Encon", ENCON_SRC, False, True),
     ("5512e", "2026-11-09 10:00", 0, "SECNAV 5512 + docs to Encon (password-protected) — sent 1046", "BFA", ENCON_SRC, True, True),
     ("5512g", "2026-11-09 13:00", 0, "Base access forms to Gov (Brian Hornaman)", "Encon", "Sol. p.2", True, True),
-    ("kick", "2026-11-10 09:00", 60, "BFA internal kickoff — review shred, disciplines, fee, ROM", "BFA PM", "Internal", False, False),
-    ("rfq", "2026-11-10 16:00", 30, "Issue subconsultant RFQs (Civil, Struct, Geotech, Survey/SUE, QFPE, Env/Air, Cyber)", "BFA PM", "Internal", False, False),
-    ("vet", "2026-11-11", 0, "Veterans Day (Federal holiday)", "—", "Part 2 1.1", False, False),
-    ("split", "2026-11-13 10:00", 60, "Encon/BFA scope-split call — Attachment 1 alignment, OEM quote status", "BFA/Encon", "Internal (proposed)", False, False),
-    ("site", "2026-11-17 13:00", 180, "Government site visit — NSF Dahlgren (Subs #1 and #6)", "Gov/Encon/BFA", "Sol. p.2; Encon ITB", True, False),
-    ("ppiw", "2026-11-19 14:00", 90, "BFA PPI working session (post-site-visit)", "BFA", "Internal", False, False),
-    ("ppie", "2026-11-23 12:00", 30, "BFA PPI list to Encon (Attachment C format)", "BFA", "Internal → Encon", True, False),
-    ("subs", "2026-11-25 17:00", 30, "Subconsultant fee proposals due to BFA", "Subs", "Internal", False, False),
-    ("tgiv", "2026-11-26", 0, "Thanksgiving (Federal holiday)", "—", "Part 2 1.1", False, False),
+    ("site", "2026-11-17 13:00", 180, "Government site visit — NSF Dahlgren (Subs #1 and #6) — attended (BFA, Kelly)", "Gov/Encon/BFA", "Sol. p.2; Encon ITB", True, True),
+    ("ppie", "2026-11-23 12:00", 30, "BFA PPI list to Encon (Attachment C format) — sent Fri 20 Nov 1542", "BFA", "Internal → Encon", True, True),
+    ("subq", "2026-11-30 17:00", 30, "A/E subconsultant questions due to BFA (feeds PPIs)", "Subs", "Internal", False, False),
     ("ppi1", "2026-12-02 11:00", 30, "PPI deadline — Encon (Pre-Bid RFIs due)", "Encon", ENCON_SRC, True, False),
     ("ppi2", "2026-12-02 14:00", 30, "PPI deadline — Government (Kayla Liverman)", "Encon", "Sol. p.3", True, False),
-    ("pink", "2026-12-04 10:00", 120, "Pink team — fee, scope letter, narrative", "BFA", "Internal", False, False),
-    ("red", "2026-12-09 10:00", 120, "Red team — pricing reconciliation; amendment check", "BFA", "Internal", False, False),
-    ("gold", "2026-12-11 10:00", 60, "Gold team — principal sign-off", "BFA Principal", "Internal", False, False),
-    ("qc", "2026-12-14 09:00", 120, "Final QC; acknowledge amendments; package for Encon", "BFA PM", "Internal", False, False),
+    ("subs", "2026-12-10 17:00", 30, "Subconsultant fee proposals due to BFA (3 business days before BFA proposal due)", "Subs", "Internal", True, False),
     ("due1", "2026-12-15 14:00", 30, "BFA PROPOSAL DUE TO ENCON (price per Attachment 1)", "BFA", ENCON_SRC, True, False),
     ("due2", "2026-12-16 14:00", 30, "ENCON PROPOSAL DUE TO NAVFAC (email, Kayla Liverman)", "Encon", "Sol. p.3", True, False),
     ("acc", "2027-04-15", 0, "Proposal acceptance period expires (120 days)", "—", "Sol. p.2", False, False),
@@ -656,14 +647,15 @@ def build_schedule(A, Pb):
     for k, s, mins, t, owner, src, hard, done in SCHEDULE:
         d = _dt(s)
         when = d.strftime("%a %d %b %Y") + (d.strftime(" %H%M") if " " in s else "")
-        status = "Complete" if done else ("Past" if d.date() < TODAY else "Open")
+        status = "Complete" if done else ("Past" if d.date() < SCHED_ASOF else "Open")
         rows.append((when, t, owner, src, "HARD" if hard else "", status))
-    md = [f"# Proposal Schedule — {TITLE}", "", HDR, "",
-          f"All times Eastern. Sources: Solicitation (Sol.), {ENCON_SRC}, and internal milestones (proposed).", "",
+    md = [f"# Proposal Schedule — {TITLE}", "", HDR.replace(f"{TODAY:%d %b %Y}", f"{SCHED_ASOF:%d %b %Y}"), "",
+          f"All times Eastern. Due dates only. Sources: Solicitation (Sol.), {ENCON_SRC}, and BFA internal deadlines.", "",
           "## Pre-award milestones", "", md_table(["Date / time", "Milestone", "Owner", "Source", "Gate", "Status"], rows), "",
           "## Post-award contract durations (for the DB schedule)", "", md_table(["Event", "Timing", "RFP ref"], POST_AWARD), "",
           "## Notes", "",
-          "- Federal holidays in the window: Veterans Day 11 Nov and Thanksgiving 26 Nov (27 Nov office closure is typical). Subconsultant fees are due before the holiday.",
+          "- Federal holiday in the window: Thanksgiving 26 Nov (27 Nov office closure is typical).",
+          "- Subconsultant fee proposals are due 3 business days before the BFA proposal is due to Encon.",
           "- The PPI deadline used is Encon's 1100 EST, which is earlier than the Government's 1400 EST.",
           "- Watch for amendments (SF-30, by email to MACC holders) after the PPI deadline. Re-check fee and scope before Gold team.",
           "- Calendar files are in `output/published/calendar/`. Import the combined `27001D_Proposal_Calendar` .ics into Outlook (double-click, or File → Open & Export → Import/Export → iCalendar). Single-event files are also provided.", ""]
@@ -983,12 +975,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="_scratch/stage")
     ap.add_argument("--docx", action="store_true", help="only convert staged .md to .docx")
+    ap.add_argument("--schedule-only", action="store_true", help="only build the proposal schedule (.md/.xlsx/.ics)")
     a = ap.parse_args()
     st = REPO_ROOT / a.stage
     A, Pb = st / "artifacts", st / "published"
     A.mkdir(parents=True, exist_ok=True); Pb.mkdir(parents=True, exist_ok=True)
     if a.docx:
         print(f"docx: {to_docx(A, Pb)}")
+        return
+    if a.schedule_only:
+        print(f"ics events {build_schedule(A, Pb)}")
         return
     build_shred(A, Pb); build_disciplines(A, Pb)
     nev = build_schedule(A, Pb)

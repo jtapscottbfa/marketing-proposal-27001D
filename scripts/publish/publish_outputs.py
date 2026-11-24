@@ -82,6 +82,26 @@ def place(src: Path, area: str, inner: Path, log: list[str]) -> Path:
     return dest
 
 
+def retire(pattern: str, log: list[str]) -> None:
+    """Move current versioned files matching ``pattern`` (relative to output/)
+    to ``output/<area>/_superseded/vNN/`` with no replacement. Never deletes."""
+    hits = [f for f in OUTPUT.glob(pattern)
+            if f.is_file() and "_superseded" not in f.parts and split_version(f.stem)[1] is not None]
+    if not hits:
+        sys.exit(f"--retire matched no current files: {pattern}")
+    for f in hits:
+        rel = f.relative_to(OUTPUT)
+        area, inner = rel.parts[0], Path(*rel.parts[1:])
+        n = split_version(f.stem)[1]
+        sup = OUTPUT / area / "_superseded" / f"v{n:02d}" / inner.parent
+        sup.mkdir(parents=True, exist_ok=True)
+        target = sup / f.name
+        if target.exists():
+            sys.exit(f"refusing to overwrite superseded file: {target}")
+        shutil.move(str(f), str(target))
+        log.append(f"retired     {f.relative_to(REPO_ROOT)} -> {target.relative_to(REPO_ROOT)}")
+
+
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(["git", "-C", str(REPO_ROOT), *args], text=True,
                           capture_output=True, check=check)
@@ -121,6 +141,8 @@ def main() -> None:
     ap.add_argument("-m", "--message", default="docs(output): publish proposal outputs")
     ap.add_argument("--push", action="store_true")
     ap.add_argument("--no-git", action="store_true")
+    ap.add_argument("--retire", action="append", default=[], metavar="OUTPUT_GLOB",
+                    help="move current files matching this glob (relative to output/) to _superseded without a replacement; repeatable")
     a = ap.parse_args()
     stage = (REPO_ROOT / a.stage).resolve() if not a.stage.is_absolute() else a.stage
     files = sorted(p for p in stage.rglob("*") if p.is_file())
@@ -130,6 +152,8 @@ def main() -> None:
     for f in files:
         area, inner = area_for(f.relative_to(stage))
         place(f, area, inner, log)
+    for pattern in a.retire:
+        retire(pattern, log)
     print("\n".join(log))
     if not a.no_git:
         save_state(a.message, a.push)
