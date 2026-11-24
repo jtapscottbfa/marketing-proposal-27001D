@@ -191,7 +191,7 @@ SCHEDULE = [
     ("subq", "2026-11-30 17:00", 30, "A/E subconsultant questions due to BFA (feeds PPIs)", "Subs", "Internal", False, False),
     ("ppi1", "2026-12-02 11:00", 30, "PPI deadline — Encon (Pre-Bid RFIs due)", "Encon", ENCON_SRC, True, False),
     ("ppi2", "2026-12-02 14:00", 30, "PPI deadline — Government (Kayla Liverman)", "Encon", "Sol. p.3", True, False),
-    ("subs", "2026-12-10 17:00", 30, "Subconsultant fee proposals due to BFA (3 business days before BFA proposal due)", "Subs", "Internal", True, False),
+    ("subs", "2026-12-11 17:00", 30, "Subconsultant fee proposals due to BFA (2 business days before BFA proposal due to Encon)", "Subs", "Internal", True, False),
     ("due1", "2026-12-15 14:00", 30, "BFA PROPOSAL DUE TO ENCON (price per Attachment 1)", "BFA", ENCON_SRC, True, False),
     ("due2", "2026-12-16 14:00", 30, "ENCON PROPOSAL DUE TO NAVFAC (email, Kayla Liverman)", "Encon", "Sol. p.3", True, False),
     ("acc", "2027-04-15", 0, "Proposal acceptance period expires (120 days)", "—", "Sol. p.2", False, False),
@@ -655,7 +655,7 @@ def build_schedule(A, Pb):
           "## Post-award contract durations (for the DB schedule)", "", md_table(["Event", "Timing", "RFP ref"], POST_AWARD), "",
           "## Notes", "",
           "- Federal holiday in the window: Thanksgiving 26 Nov (27 Nov office closure is typical).",
-          "- Subconsultant fee proposals are due 3 business days before the BFA proposal is due to Encon.",
+          "- Subconsultant fee proposals are due 2 business days before the BFA proposal is due to Encon.",
           "- The PPI deadline used is Encon's 1100 EST, which is earlier than the Government's 1400 EST.",
           "- Watch for amendments (SF-30, by email to MACC holders) after the PPI deadline. Re-check fee and scope before Gold team.",
           "- Calendar files are in `output/published/calendar/`. Import the combined `27001D_Proposal_Calendar` .ics into Outlook (double-click, or File → Open & Export → Import/Export → iCalendar). Single-event files are also provided.", ""]
